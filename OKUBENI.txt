@@ -1,0 +1,50 @@
+DÖNEMİÇİ İŞLEMLER — PWA KURULUM NOTU
+=====================================
+
+Bu klasörde 5 dosya var, hepsi BİRLİKTE aynı klasörde kalmalı:
+
+  - donemici_islemler_paneli.html   (asıl uygulama)
+  - manifest.json                  (uygulama kimliği, ikon, isim)
+  - sw.js                          (çevrimdışı çalışma için service worker)
+  - icon-192.png / icon-512.png / icon-512-maskable.png  (uygulama ikonları)
+
+NEDEN TEK DOSYA DEĞİL?
+Tarayıcılar, bir PWA'nın "gerçek" bir uygulama gibi ana ekrana eklenip
+çevrimdışı çalışabilmesi için manifest.json ve sw.js dosyalarının ayrı
+dosyalar olarak, bir web sunucusu üzerinden sunulmasını şart koşuyor.
+Hepsini tek HTML içine gömmek teknik olarak mümkün değil.
+
+DOSYAYI SADECE ÇİFT TIKLAYARAK AÇARSANIZ (file://)
+Panel gayet normal çalışır, hiçbir şey bozulmaz. Ancak tarayıcı güvenlik
+politikaları gereği service worker devreye girmez; yani "ana ekrana ekle"
+ikonu görünmeyebilir ve internet olmadan tekrar açılamaz. Mobil ekran
+düzeni (kart görünümlü tablo, büyük dokunma alanları vb.) yine de aktiftir.
+
+TAM PWA DENEYİMİ İÇİN (ana ekrana ekle + çevrimdışı çalışma)
+Dosyaları küçük bir web sunucusundan yayınlamanız gerekir. En kolay
+seçenekler:
+
+1) Netlify Drop (hesap gerektirmez):
+   https://app.netlify.com/drop adresine gidin, bu 5 dosyanın olduğu
+   klasörü tarayıcıya sürükleyip bırakın. Size bir adres verecek
+   (örn. https://xxxx.netlify.app/donemici_islemler_paneli.html).
+   Telefonunuzda bu adresi açın, tarayıcı menüsünden
+   "Ana Ekrana Ekle" (Android) veya "Ana Ekrana Ekle" (iOS Safari
+   paylaş menüsü) seçeneğini kullanın.
+
+2) GitHub Pages: Bu 5 dosyayı bir GitHub deposuna yükleyip
+   Pages özelliğini açarsanız aynı şekilde çalışır.
+
+3) Kendi bilgisayarınızda basit sunucu (aynı Wi-Fi'daki telefon için):
+   Bilgisayarda bu klasörde bir terminal açıp:
+       python -m http.server 8080
+   yazın, sonra telefonunuzdan bilgisayarın yerel IP adresiyle
+   (örn. http://192.168.1.20:8080/donemici_islemler_paneli.html)
+   bağlanın.
+
+VERİLERİNİZ NEREDE SAKLANIYOR?
+Panel verileri tarayıcının localStorage'ında saklar. Yani veriler
+hangi tarayıcı/adresten açtıysanız ona bağlıdır — Netlify'a taşırsanız
+veya farklı bir tarayıcıda açarsanız eski file:// sürümündeki kayıtları
+göremezsiniz. Önemliyse önce "CSV Olarak Dışa Aktar" ile mevcut
+kayıtları yedekleyin.

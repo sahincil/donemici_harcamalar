@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Dönemiçi İşlemler — Hesap Defteri</title>
+
+<!-- PWA: manifest ve simgeler -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#6d4fc4">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Dönemiçi İşl.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#faf9fc; --panel:#ffffff; --panel-2:#f3f0fa;
+  --ink:#241f36; --muted:#6b6478; --line:#e6e1f2;
+  --accent:#6d4fc4; --accent-2:#9b7fd4; --accent-soft:#ede7fb;
+  --gold:#c48a3f; --danger:#c0392b; --danger-soft:#fbeae8;
+  --good:#3fa796;
+  --shadow: 0 8px 24px -8px rgba(109,79,196,.18), 0 2px 6px -2px rgba(36,31,54,.06);
+  --radius: 14px;
+  --cat-market:#6d4fc4; --cat-elektronik:#2e86ab; --cat-giyim:#d1477a;
+  --cat-saglik:#3fa796; --cat-vergi:#c0392b; --cat-akaryakit:#dd8a3f;
+  --cat-kurum:#7c7a89; --cat-ulasim:#4a7c59; --cat-diger:#9b59b6; --cat-none:#a9a3bd;
+}
+[data-theme="dark"]{
+  --bg:#15121e; --panel:#1e1a2b; --panel-2:#241f36;
+  --ink:#ece8f5; --muted:#9a92b0; --line:#332c47;
+  --accent:#9b7fd4; --accent-2:#7c5cbf; --accent-soft:#2c2440;
+  --gold:#d1a24a; --danger:#e0645a; --danger-soft:#3a2129;
+  --good:#5ec4b3;
+  --shadow: 0 8px 28px -8px rgba(0,0,0,.55), 0 2px 8px -2px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:'Inter',sans-serif;
+  transition:background .25s ease,color .25s ease;
+  padding-bottom:60px;
+}
+.mono{font-family:'IBM Plex Mono',monospace;}
+h1,h2,h3,.display{font-family:'Fraunces',serif;}
+a{color:var(--accent);}
+
+/* ---------- Header ---------- */
+.topbar{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:22px 32px; border-bottom:1px solid var(--line);
+  position:sticky; top:0; z-index:40; background:var(--bg);
+  backdrop-filter:blur(6px);
+}
+.brand{display:flex; align-items:center; gap:14px;}
+.brand .mark{
+  width:40px;height:40px;border-radius:10px;
+  background:linear-gradient(155deg,var(--accent),var(--accent-2));
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-family:'Fraunces',serif;font-weight:700;font-size:19px;
+  box-shadow:var(--shadow);
+}
+.brand h1{font-size:20px;margin:0;font-weight:600;letter-spacing:.2px;}
+.brand p{margin:0;font-size:12px;color:var(--muted);}
+.theme-toggle{
+  border:1px solid var(--line); background:var(--panel); color:var(--ink);
+  border-radius:100px; padding:8px 16px; cursor:pointer; font-size:13px;
+  font-family:'Inter'; display:flex; gap:8px; align-items:center;
+  transition:.15s;
+}
+.theme-toggle:hover{border-color:var(--accent);}
+
+.wrap{max-width:1320px; margin:0 auto; padding:28px 32px;}
+
+/* ---------- Stat cards ---------- */
+.stats{display:grid; grid-template-columns:repeat(5,1fr); gap:14px; margin-bottom:26px;}
+.stat{
+  background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+  padding:18px 18px 16px; position:relative; overflow:hidden;
+}
+.stat::before{
+  content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--accent);
+}
+.stat.danger::before{background:var(--danger);}
+.stat.gold::before{background:var(--gold);}
+.stat.good::before{background:var(--good);}
+.stat .label{font-size:11.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.6px; margin-bottom:8px;}
+.stat .value{font-family:'IBM Plex Mono',monospace; font-size:22px; font-weight:600;}
+.stat .sub{font-size:11.5px; color:var(--muted); margin-top:4px;}
+
+/* ---------- Layout: table + side panel ---------- */
+.grid{display:grid; grid-template-columns:1.75fr 1fr; gap:20px; align-items:start;}
+@media (max-width:1080px){.grid{grid-template-columns:1fr;} .stats{grid-template-columns:repeat(2,1fr);}}
+
+.panel{
+  background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+  box-shadow:var(--shadow); padding:20px; margin-bottom:20px;
+}
+.panel h2{font-size:16px; margin:0 0 4px; font-weight:600;}
+.panel .hint{font-size:12px; color:var(--muted); margin:0 0 16px;}
+
+/* ---------- Filter bar ---------- */
+.filters{display:flex; flex-wrap:wrap; gap:10px; margin-bottom:16px;}
+.f-group{display:flex; flex-direction:column; gap:5px;}
+.f-group label{font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.4px;}
+input, select{
+  font-family:'Inter'; font-size:13px; color:var(--ink); background:var(--panel-2);
+  border:1px solid var(--line); border-radius:9px; padding:8px 10px; outline:none;
+}
+input:focus, select:focus{border-color:var(--accent);}
+.search-box{min-width:220px;}
+.chips{display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;}
+.chip{
+  border:1px solid var(--line); border-radius:100px; padding:5px 12px; font-size:12px;
+  cursor:pointer; display:flex; align-items:center; gap:6px; color:var(--muted); background:var(--panel-2);
+  user-select:none; transition:.12s;
+}
+.chip .dot{width:7px;height:7px;border-radius:50%;}
+.chip.active{border-color:transparent; color:#fff; font-weight:500;}
+.chip-reset{border-style:dashed;}
+
+.filters-actions{display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;}
+.btn{
+  font-family:'Inter'; font-size:13px; font-weight:500; border-radius:9px; border:1px solid var(--line);
+  padding:8px 14px; cursor:pointer; background:var(--panel-2); color:var(--ink); transition:.12s;
+}
+.btn:hover{border-color:var(--accent);}
+.btn-primary{background:var(--accent); border-color:var(--accent); color:#fff;}
+.btn-primary:hover{background:var(--accent-2); border-color:var(--accent-2);}
+.btn-danger{background:var(--danger-soft); border-color:var(--danger); color:var(--danger);}
+.btn-danger:hover{background:var(--danger); color:#fff;}
+.btn-danger:disabled{opacity:.4; cursor:not-allowed;}
+.btn-ghost{background:transparent;}
+
+/* ---------- Table ---------- */
+.table-scroll{overflow-x:auto; border:1px solid var(--line); border-radius:12px;}
+table{width:100%; border-collapse:collapse; font-size:13.5px;}
+thead th{
+  text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.5px;
+  color:var(--muted); background:var(--panel-2); padding:11px 12px; white-space:nowrap;
+  position:sticky; top:0; cursor:pointer; user-select:none;
+}
+thead th.sortable:hover{color:var(--accent);}
+thead th .arrow{opacity:.5; font-size:10px;}
+tbody td{padding:10px 12px; border-top:1px solid var(--line); vertical-align:middle;}
+tbody tr:hover{background:var(--panel-2);}
+tbody tr.selected{background:var(--accent-soft);}
+.amount{font-family:'IBM Plex Mono',monospace; font-weight:600; text-align:right; white-space:nowrap;}
+.bonus-val{font-family:'IBM Plex Mono',monospace; color:var(--gold); font-size:12px;}
+.desc{max-width:280px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.badge{
+  display:inline-flex; align-items:center; gap:6px; font-size:11.5px; padding:3px 9px 3px 7px;
+  border-radius:100px; color:#fff; font-weight:500; white-space:nowrap;
+}
+.row-del{
+  border:none; background:transparent; color:var(--muted); cursor:pointer; font-size:15px;
+  border-radius:6px; padding:3px 6px;
+}
+.row-del:hover{color:var(--danger); background:var(--danger-soft);}
+input[type="checkbox"]{width:15px;height:15px; accent-color:var(--accent); cursor:pointer;}
+.empty-state{padding:50px 20px; text-align:center; color:var(--muted);}
+.empty-state .display{font-size:17px; color:var(--ink); margin-bottom:6px;}
+
+/* ---------- Receipt-style add form (signature element) ---------- */
+.receipt{
+  background:
+    repeating-linear-gradient(90deg, transparent 0 6px, var(--line) 6px 7px) top / 100% 1px no-repeat,
+    var(--panel);
+  border:1px solid var(--line);
+  border-radius:4px;
+  padding:22px 22px 18px;
+  position:relative;
+  box-shadow:var(--shadow);
+  font-family:'IBM Plex Mono',monospace;
+}
+.receipt::before, .receipt::after{
+  content:""; position:absolute; left:0; right:0; height:10px;
+  background-image: radial-gradient(circle at 8px 5px, var(--bg) 5px, transparent 5.5px);
+  background-size:16px 10px; background-repeat:repeat-x;
+}
+.receipt::before{top:-5px;}
+.receipt::after{bottom:-5px; transform:rotate(180deg);}
+.receipt-head{text-align:center; margin-bottom:14px; border-bottom:1px dashed var(--line); padding-bottom:12px;}
+.receipt-head .tag{font-size:10.5px; letter-spacing:2px; color:var(--muted); text-transform:uppercase;}
+.receipt-head h2{font-family:'Fraunces',serif; font-size:18px; margin:4px 0 0;}
+.receipt-form{display:flex; flex-direction:column; gap:12px;}
+.receipt-form .f-group{width:100%;}
+.receipt-form label{font-size:10.5px;}
+.receipt-form input, .receipt-form select{
+  font-family:'IBM Plex Mono',monospace; width:100%; background:var(--panel-2);
+}
+.receipt-form .row2{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+.receipt-submit{
+  margin-top:6px; width:100%; padding:11px; border-radius:8px; border:none;
+  background:var(--accent); color:#fff; font-weight:600; letter-spacing:.4px; cursor:pointer;
+  font-family:'Inter'; font-size:13.5px;
+}
+.receipt-submit:hover{background:var(--accent-2);}
+.receipt-total-line{
+  border-top:1px dashed var(--line); margin-top:12px; padding-top:10px;
+  display:flex; justify-content:space-between; font-size:11px; color:var(--muted);
+}
+.new-cat-wrap{display:none; margin-top:6px;}
+.new-cat-wrap.show{display:block;}
+
+/* ---------- Charts panel ---------- */
+.chart-box{position:relative; height:230px; margin-bottom:6px;}
+.legend-mini{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; font-size:11px; color:var(--muted);}
+.legend-mini span{display:flex; align-items:center; gap:5px;}
+.legend-mini .dot{width:8px;height:8px;border-radius:50%;}
+
+.toast{
+  position:fixed; bottom:26px; left:50%; transform:translateX(-50%) translateY(20px);
+  background:var(--ink); color:var(--bg); padding:11px 20px; border-radius:100px;
+  font-size:13px; opacity:0; pointer-events:none; transition:.25s; z-index:100; box-shadow:var(--shadow);
+}
+.toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+[data-theme="dark"] .toast{background:var(--accent); color:#fff;}
+
+footer{text-align:center; color:var(--muted); font-size:11.5px; padding:30px 0 6px;}
+
+/* ---------- Mobil uyumluluk (PWA) ---------- */
+@supports (padding: max(0px)){
+  .topbar{ padding-top:max(14px, env(safe-area-inset-top)); }
+  body{ padding-bottom:max(60px, env(safe-area-inset-bottom)); }
+}
+
+@media (max-width:640px){
+  .topbar{ padding:14px 16px; }
+  .brand h1{ font-size:16px; }
+  .brand p{ display:none; }
+  .brand .mark{ width:34px; height:34px; font-size:16px; }
+  .theme-toggle{ padding:7px 10px; font-size:12px; }
+  .theme-toggle span{ display:none; }
+
+  .wrap{ padding:16px 12px; }
+  .stats{ grid-template-columns:repeat(2,1fr); gap:10px; }
+  .stat{ padding:14px 14px 12px; }
+  .stat .value{ font-size:18px; }
+
+  .panel{ padding:14px; }
+  .filters{ flex-direction:column; }
+  .f-group{ width:100%; }
+  input, select{ width:100%; font-size:14px; padding:10px 11px; } /* iOS zoom önleme + kolay dokunma */
+  .search-box{ min-width:0; }
+  .filters-actions{ flex-direction:column; align-items:stretch; }
+  .filters-actions .btn{ width:100%; text-align:center; }
+
+  .row2{ grid-template-columns:1fr !important; }
+
+  /* Tablo -> kart görünümü */
+  .table-scroll{ overflow-x:visible; border:none; }
+  table, thead, tbody, tr, td{ display:block; width:100%; }
+  thead{ display:none; }
+  tbody tr{
+    border:1px solid var(--line); border-radius:12px; margin-bottom:10px;
+    padding:10px 12px; position:relative; background:var(--panel);
+  }
+  tbody tr.selected{ border-color:var(--accent); }
+  tbody td{ border-top:none; padding:4px 0; white-space:normal; }
+  tbody td.desc{ max-width:100%; white-space:normal; font-weight:600; padding-right:34px; }
+  tbody td.amount{ text-align:left; font-size:16px; }
+  tbody td.bonus-val{ text-align:left; }
+  tbody td:first-child{ position:absolute; top:10px; right:8px; padding:0; }
+  tbody td:last-child{ position:absolute; top:6px; right:34px; padding:0; }
+  tbody td.mono{ color:var(--muted); font-size:12px; }
+  tbody td[data-label]:not([data-label=""])::before{
+    content:attr(data-label); display:inline-block; min-width:56px;
+    font-size:10.5px; text-transform:uppercase; letter-spacing:.4px; color:var(--muted); margin-right:8px;
+  }
+  tbody td.amount::before, tbody td.bonus-val::before{ min-width:0; margin-right:8px; }
+
+  .chart-box{ height:200px; }
+  .legend-mini{ font-size:10.5px; }
+
+  .receipt{ padding:18px 16px 14px; }
+}
+</style>
+</head>
+<body data-theme="light">
+
+<div class="topbar">
+  <div class="brand">
+    <div class="mark">₺</div>
+    <div>
+      <h1>Dönemiçi İşlemler</h1>
+      <p>Hesap defteri &amp; harcama gösterge paneli</p>
+    </div>
+  </div>
+  <button class="theme-toggle" id="themeToggle">🌙 <span>Koyu Tema</span></button>
+</div>
+
+<div class="wrap">
+
+  <div class="stats" id="statsRow"></div>
+
+  <div class="grid">
+    <!-- LEFT: filters + table -->
+    <div>
+      <div class="panel">
+        <h2>Filtrele</h2>
+        <p class="hint">Görüntülenen listeyi ve grafikleri daraltmak için aşağıdaki ölçütleri kullanın.</p>
+        <div class="filters">
+          <div class="f-group">
+            <label>Başlangıç</label>
+            <input type="date" id="fStart">
+          </div>
+          <div class="f-group">
+            <label>Bitiş</label>
+            <input type="date" id="fEnd">
+          </div>
+          <div class="f-group" style="flex:1;">
+            <label>İşlem ara</label>
+            <input type="text" id="fSearch" class="search-box" placeholder="Örn. Market, Netflix, A101…">
+          </div>
+          <div class="f-group">
+            <label>Min. tutar</label>
+            <input type="number" id="fMin" placeholder="0" step="0.01">
+          </div>
+          <div class="f-group">
+            <label>Maks. tutar</label>
+            <input type="number" id="fMax" placeholder="∞" step="0.01">
+          </div>
+        </div>
+        <div class="chips" id="catChips"></div>
+        <div class="filters-actions" style="margin-top:14px;">
+          <button class="btn btn-ghost" id="clearFilters">Filtreleri Temizle</button>
+          <button class="btn" id="exportCsv">CSV Olarak Dışa Aktar</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="filters-actions" style="margin-bottom:14px;">
+          <div>
+            <h2 style="display:inline">İşlem Listesi</h2>
+            <span class="hint" id="rowCountHint" style="margin-left:8px;"></span>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button class="btn btn-danger" id="bulkDeleteBtn" disabled>Seçilenleri Sil (0)</button>
+          </div>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:34px;"><input type="checkbox" id="selectAll"></th>
+                <th class="sortable" data-sort="tarih">Tarih <span class="arrow">▾</span></th>
+                <th class="sortable" data-sort="islem">İşlem <span class="arrow"></span></th>
+                <th class="sortable" data-sort="etiket">Etiket <span class="arrow"></span></th>
+                <th class="sortable" data-sort="bonus" style="text-align:right;">Bonus <span class="arrow"></span></th>
+                <th class="sortable" data-sort="tutar" style="text-align:right;">Tutar (TL) <span class="arrow"></span></th>
+                <th style="width:40px;"></th>
+              </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+        <div class="empty-state" id="emptyState" style="display:none;">
+          <div class="display">Kayıt bulunamadı</div>
+          <div>Filtreleri temizleyip yeniden deneyin, ya da sağdaki fişten yeni bir işlem ekleyin.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: receipt form + charts -->
+    <div>
+      <div class="receipt">
+        <div class="receipt-head">
+          <div class="tag">Yeni Kayıt · Fiş</div>
+          <h2>İşlem Ekle</h2>
+        </div>
+        <div class="receipt-form">
+          <div class="f-group">
+            <label>Tarih</label>
+            <input type="date" id="nTarih">
+          </div>
+          <div class="f-group">
+            <label>İşlem / Açıklama</label>
+            <input type="text" id="nIslem" placeholder="örn. Migros Edremit">
+          </div>
+          <div class="row2">
+            <div class="f-group">
+              <label>Etiket</label>
+              <select id="nEtiket">
+                <option value="">Kategorisiz</option>
+              </select>
+            </div>
+            <div class="f-group">
+              <label>Tutar (TL)</label>
+              <input type="number" id="nTutar" step="0.01" placeholder="0.00">
+            </div>
+          </div>
+          <div class="new-cat-wrap" id="newCatWrap">
+            <input type="text" id="nNewCat" placeholder="Yeni etiket adı yazın">
+          </div>
+          <div class="f-group">
+            <label>Bonus (opsiyonel)</label>
+            <input type="number" id="nBonus" step="0.01" placeholder="0.00">
+          </div>
+          <button class="receipt-submit" id="addBtn">FİŞİ KAYDET →</button>
+          <div class="receipt-total-line">
+            <span id="rTotalLabel">TOPLAM KAYIT</span>
+            <span class="mono" id="rTotalVal">0</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Kategori Dağılımı</h2>
+        <p class="hint">Filtrelenmiş toplamın kategoriye göre payı</p>
+        <div class="chart-box"><canvas id="catChart"></canvas></div>
+        <div class="legend-mini" id="catLegend"></div>
+      </div>
+
+      <div class="panel">
+        <h2>Günlük Harcama Seyri</h2>
+        <p class="hint">Filtrelenmiş kayıtların tarihe göre toplamı</p>
+        <div class="chart-box"><canvas id="trendChart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>M. Şahin ÇİL · Dönemiçi İşlemler Paneli — veriler bu tarayıcıda (localStorage) saklanır.</footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============ SEED DATA ============ */
+const SEED = [{"id": 1, "tarih": "2026-08-04", "islem": "CENKIN YERI BALIKESIR", "etiket": "", "bonus": 0, "tutar": 250}, {"id": 2, "tarih": "2026-08-04", "islem": "SINAN DIKICI SAHIS FIRMA BALIKESIR", "etiket": "", "bonus": 0, "tutar": 149.5}, {"id": 3, "tarih": "2026-08-03", "islem": "POWERNET TELEKOMUNIKASY ISTANBUL", "etiket": "", "bonus": 0, "tutar": 670}, {"id": 4, "tarih": "2026-08-03", "islem": "SINAN DIKICI SAHIS FIRMA BALIKESIR", "etiket": "", "bonus": 0, "tutar": 57}, {"id": 5, "tarih": "2026-08-03", "islem": "DELI BURGER Balikesir", "etiket": "", "bonus": 0, "tutar": 1230}, {"id": 6, "tarih": "2026-08-03", "islem": "LIDIO  /ASIS Istanbul", "etiket": "", "bonus": 0, "tutar": 524.99}, {"id": 7, "tarih": "2026-08-18", "islem": "MOKA UNITE/EVOFONE TEKNOL (2/9) ISTANBUL AVR", "etiket": "Elektronik", "bonus": 0, "tutar": 7277.66}, {"id": 8, "tarih": "2026-08-14", "islem": "MEDİA MARKT-BALIKESİR EDR (2/2) BALIKESİR", "etiket": "Elektronik", "bonus": 0, "tutar": 4834.5}, {"id": 9, "tarih": "2026-08-10", "islem": "HEPSİPAY-HEP*HEPSİBURADA (3/3) İSTANBUL", "etiket": "Market", "bonus": 0, "tutar": 909.24}, {"id": 10, "tarih": "2026-08-09", "islem": "LOFT NOVADA AVM (2/2) BALIKESİR", "etiket": "Giyim / Aksesuar", "bonus": 0, "tutar": 2367.5}, {"id": 11, "tarih": "2026-08-07", "islem": "DEFACTO -BALIKESİR EDREMİ (3/6) BALIKESİR", "etiket": "Giyim / Aksesuar", "bonus": 0, "tutar": 600.82}, {"id": 12, "tarih": "2026-08-05", "islem": "N KOLAY ÖDEM/ATASUN OPTİK (3/6) İSTANBUL", "etiket": "Sağlık / Bakım", "bonus": 0, "tutar": 986.72}, {"id": 13, "tarih": "2026-08-02", "islem": "MOBİL:SINAN DIKICI SAHIS BALIKESIR", "etiket": "Market", "bonus": 0, "tutar": 150}, {"id": 14, "tarih": "2026-08-02", "islem": "MOBİL:SINAN DIKICI SAHIS BALIKESIR", "etiket": "Market", "bonus": 0, "tutar": 70}, {"id": 15, "tarih": "2026-08-02", "islem": "MOBİL:SINAN DIKICI SAHIS BALIKESIR", "etiket": "Market", "bonus": 0, "tutar": 147}, {"id": 16, "tarih": "2026-08-02", "islem": "A101-6332 DARSOFA-EDREMİT BALIKESİR", "etiket": "Market", "bonus": 0.01, "tutar": 110}, {"id": 17, "tarih": "2026-08-02", "islem": "A101-6332 DARSOFA-EDREMİT BALIKESİR", "etiket": "Market", "bonus": 0.01, "tutar": 101.3}, {"id": 18, "tarih": "2026-08-01", "islem": "MOBİL:SINAN DIKICI SAHIS BALIKESIR", "etiket": "Market", "bonus": 0, "tutar": 15}, {"id": 19, "tarih": "2026-08-01", "islem": "MOBİL:SINAN DIKICI SAHIS BALIKESIR", "etiket": "Market", "bonus": 0, "tutar": 225}, {"id": 20, "tarih": "2026-08-01", "islem": "ELCIN ECZANESI BALIKESIR", "etiket": "Sağlık / Bakım", "bonus": 0, "tutar": 467.2}, {"id": 21, "tarih": "2026-08-01", "islem": "B A S K İ BALIKESİR", "etiket": "Vergi", "bonus": 0, "tutar": 982}, {"id": 22, "tarih": "2026-08-01", "islem": "MOBİL:5M EDREMİT KİPA AVM BALIKESİR", "etiket": "Market", "bonus": 0.53, "tutar": 1064.8}, {"id": 23, "tarih": "2026-08-01", "islem": "BİM K432-KAZDAĞI - EDREMİ (4/4) BALIKESİR", "etiket": "Elektronik", "bonus": 0, "tutar": 6225}, {"id": 24, "tarih": "2026-07-31", "islem": "MOBİL:SINAN DIKICI SAHIS BALIKESIR", "etiket": "Market", "bonus": 0, "tutar": 210}, {"id": 25, "tarih": "2026-07-30", "islem": "MOBİL:6106 BALIKESİR EDRE BALIKESİR", "etiket": "Market", "bonus": 0.03, "tutar": 260.42}, {"id": 26, "tarih": "2026-07-30", "islem": "MOBİL:BİM K432-KAZDAĞI - BALIKESİR", "etiket": "Market", "bonus": 0, "tutar": 219.5}, {"id": 27, "tarih": "2026-07-29", "islem": "MOBİL:SINAN DIKICI SAHIS BALIKESIR", "etiket": "Market", "bonus": 0, "tutar": 90}, {"id": 28, "tarih": "2026-07-29", "islem": "207080 KUZEY EGE PETROL U BALIKESIR", "etiket": "Akaryakıt", "bonus": 0, "tutar": 120}, {"id": 29, "tarih": "2026-07-29", "islem": "Netflix.com Los Gatos", "etiket": "Kurum Ödemesi", "bonus": 0, "tutar": 379.99}, {"id": 30, "tarih": "2026-07-28", "islem": "MOBİL:SINAN DIKICI SAHIS BALIKESIR", "etiket": "Market", "bonus": 0, "tutar": 249.9}, {"id": 31, "tarih": "2026-07-28", "islem": "MOBİL:SINAN DIKICI SAHIS BALIKESIR", "etiket": "Market", "bonus": 0, "tutar": 40}, {"id": 32, "tarih": "2026-07-28", "islem": "MOBİL:SINAN DIKICI SAHIS BALIKESIR", "etiket": "Market", "bonus": 0, "tutar": 53.5}, {"id": 33, "tarih": "2026-07-28", "islem": "S/BASKİ SANAL POS BALIKESİR", "etiket": "Kurum Ödemesi", "bonus": 0, "tutar": 1552.8}, {"id": 34, "tarih": "2026-07-28", "islem": "5M EDREMİT KİPA AVM-5548 BALIKESİR", "etiket": "Market", "bonus": 0.09, "tutar": 174.85}, {"id": 35, "tarih": "2026-07-28", "islem": "MOBİL:BTSM-M507-EDREMİT G BALIKESİR", "etiket": "Market", "bonus": 0, "tutar": 1662.9}, {"id": 36, "tarih": "2026-07-27", "islem": "MOBİL:SINAN DIKICI SAHIS BALIKESIR", "etiket": "Market", "bonus": 0, "tutar": 295.95}, {"id": 37, "tarih": "2026-07-27", "islem": "TOPLU TASIMA UCRETI BALIKESIR", "etiket": "Ulaşım", "bonus": 0, "tutar": 35}, {"id": 38, "tarih": "2026-07-27", "islem": "MOBİL:KAZIM ŞENGÖZ ŞARKÜT BALIKESİR", "etiket": "Market", "bonus": 0, "tutar": 210}, {"id": 39, "tarih": "2026-07-27", "islem": "MOBİL:KAZIM ŞENGÖZ ŞARKÜT BALIKESİR", "etiket": "Market", "bonus": 0, "tutar": 1400}, {"id": 40, "tarih": "2026-07-27", "islem": "BD/ÇINAR VETERİNER KLİNİĞ BALIKESİR", "etiket": "Sağlık / Bakım", "bonus": 0, "tutar": 6400}, {"id": 41, "tarih": "2026-07-27", "islem": "DYSON TURKEY ELEK. ÜR. Tİ (1/9) İSTANBUL", "etiket": "Elektronik", "bonus": 3.3, "tutar": 366.6}, {"id": 42, "tarih": "2026-07-26", "islem": "MOBİL:SINAN DIKICI SAHIS BALIKESIR", "etiket": "Market", "bonus": 0, "tutar": 295}, {"id": 43, "tarih": "2026-07-26", "islem": "MOBİL:SINAN DIKICI SAHIS BALIKESIR", "etiket": "Market", "bonus": 0, "tutar": 294.95}, {"id": 44, "tarih": "2026-07-26", "islem": "MOBİL:SINAN DIKICI SAHIS BALIKESIR", "etiket": "Market", "bonus": 0, "tutar": 120}, {"id": 45, "tarih": "2026-07-26", "islem": "HAVRAN BOSCH HELVACIOĞULL (5/7) BALIKESİR", "etiket": "Elektronik", "bonus": 0, "tutar": 2671.42}, {"id": 46, "tarih": "2026-08-04", "islem": "A101-6332 DARSOFA-EDREMİ BALIKESİR", "etiket": "", "bonus": 0, "tutar": 19.5}, {"id": 47, "tarih": "2026-08-04", "islem": "A101-6332 DARSOFA-EDREMİ BALIKESİR", "etiket": "", "bonus": 0, "tutar": 39}, {"id": 48, "tarih": "2026-08-04", "islem": "A101-6332 DARSOFA-EDREMİ BALIKESİR", "etiket": "", "bonus": 0, "tutar": 148}, {"id": 49, "tarih": "2026-08-02", "islem": "%1 EKSTRA BONUSUNUZ", "etiket": "Diğer", "bonus": 47.85, "tutar": 0}, {"id": 50, "tarih": "2026-08-02", "islem": "BİM L324-HEKİMZADE-EDREMİ (2/6) BALIKESİR", "etiket": "Elektronik", "bonus": 0, "tutar": 563.33}, {"id": 51, "tarih": "2026-08-01", "islem": "A101-6332 DARSOFA-EDREMİT BALIKESİR", "etiket": "Market", "bonus": 0.02, "tutar": 122.5}, {"id": 52, "tarih": "2026-08-01", "islem": "A101-6332 DARSOFA-EDREMİT BALIKESİR", "etiket": "Market", "bonus": 0.02, "tutar": 115}, {"id": 53, "tarih": "2026-07-31", "islem": "A101-6332 DARSOFA-EDREMİT BALIKESİR", "etiket": "Market", "bonus": 0.02, "tutar": 78}, {"id": 54, "tarih": "2026-07-31", "islem": "A101-6332 DARSOFA-EDREMİT BALIKESİR", "etiket": "Market", "bonus": 0.02, "tutar": 52.5}, {"id": 55, "tarih": "2026-07-31", "islem": "A101-6332 DARSOFA-EDREMİT BALIKESİR", "etiket": "Market", "bonus": 0.04, "tutar": 244}, {"id": 56, "tarih": "2026-07-30", "islem": "A101-6332 DARSOFA-EDREMİT BALIKESİR", "etiket": "Market", "bonus": 0.06, "tutar": 270}, {"id": 57, "tarih": "2026-07-30", "islem": "A101-6332 DARSOFA-EDREMİT BALIKESİR", "etiket": "Market", "bonus": 0.04, "tutar": 211.4}, {"id": 58, "tarih": "2026-07-29", "islem": "A101-6332 DARSOFA-EDREMİT BALIKESİR", "etiket": "Market", "bonus": 0.02, "tutar": 110}, {"id": 59, "tarih": "2026-07-29", "islem": "A101-6332 DARSOFA-EDREMİT BALIKESİR", "etiket": "Market", "bonus": 0.02, "tutar": 115}, {"id": 60, "tarih": "2026-07-29", "islem": "A101-6332 DARSOFA-EDREMİT BALIKESİR", "etiket": "Market", "bonus": 0.02, "tutar": 86.5}, {"id": 61, "tarih": "2026-07-29", "islem": "A101-6332 DARSOFA-EDREMİT BALIKESİR", "etiket": "Market", "bonus": 0.02, "tutar": 129}, {"id": 62, "tarih": "2026-07-27", "islem": "A101-6332 DARSOFA-EDREMİT BALIKESİR", "etiket": "Market", "bonus": 0.02, "tutar": 115}, {"id": 63, "tarih": "2026-07-27", "islem": "A101-6332 DARSOFA-EDREMİT BALIKESİR", "etiket": "Market", "bonus": 0.06, "tutar": 257}, {"id": 64, "tarih": "2026-07-26", "islem": "EDREMİT SHELL İSTASY BALIKESİR", "etiket": "Akaryakıt", "bonus": 0, "tutar": 314.69}];
+
+const CAT_COLORS = {
+  "Market":"var(--cat-market)","Elektronik":"var(--cat-elektronik)","Giyim / Aksesuar":"var(--cat-giyim)",
+  "Sağlık / Bakım":"var(--cat-saglik)","Vergi":"var(--cat-vergi)","Akaryakıt":"var(--cat-akaryakit)",
+  "Kurum Ödemesi":"var(--cat-kurum)","Ulaşım":"var(--cat-ulasim)","Diğer":"var(--cat-diger)","":"var(--cat-none)"
+};
+const CAT_HEX = {
+  "Market":"#6d4fc4","Elektronik":"#2e86ab","Giyim / Aksesuar":"#d1477a",
+  "Sağlık / Bakım":"#3fa796","Vergi":"#c0392b","Akaryakıt":"#dd8a3f",
+  "Kurum Ödemesi":"#7c7a89","Ulaşım":"#4a7c59","Diğer":"#9b59b6","":"#a9a3bd"
+};
+function catLabel(c){ return c === "" ? "Kategorisiz" : c; }
+function catColor(c){ return CAT_HEX[c] || "#a9a3bd"; }
+
+const STORE_KEY = "donemici_islemler_v1";
+const THEME_KEY = "donemici_islemler_theme";
+
+function loadData(){
+  const raw = localStorage.getItem(STORE_KEY);
+  if(raw){
+    try{ return JSON.parse(raw); }catch(e){ /* fallthrough */ }
+  }
+  localStorage.setItem(STORE_KEY, JSON.stringify(SEED));
+  return JSON.parse(JSON.stringify(SEED));
+}
+function saveData(d){ localStorage.setItem(STORE_KEY, JSON.stringify(d)); }
+
+let DATA = loadData();
+let selected = new Set();
+let sortState = {key:"tarih", dir:"desc"};
+let activeCatFilter = null;
+
+/* ============ THEME ============ */
+function applyTheme(t){
+  document.body.setAttribute('data-theme', t);
+  const btn = document.getElementById('themeToggle');
+  btn.innerHTML = t === 'dark' ? '☀️ <span>Açık Tema</span>' : '🌙 <span>Koyu Tema</span>';
+  localStorage.setItem(THEME_KEY, t);
+}
+applyTheme(localStorage.getItem(THEME_KEY) || 'light');
+document.getElementById('themeToggle').addEventListener('click', ()=>{
+  const cur = document.body.getAttribute('data-theme');
+  applyTheme(cur === 'dark' ? 'light' : 'dark');
+  renderCharts();
+});
+
+/* ============ TOAST ============ */
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+/* ============ FILTER LOGIC ============ */
+function getFiltered(){
+  const start = document.getElementById('fStart').value;
+  const end = document.getElementById('fEnd').value;
+  const search = document.getElementById('fSearch').value.trim().toLowerCase();
+  const min = parseFloat(document.getElementById('fMin').value);
+  const max = parseFloat(document.getElementById('fMax').value);
+
+  let rows = DATA.filter(r=>{
+    if(start && r.tarih < start) return false;
+    if(end && r.tarih > end) return false;
+    if(search && !r.islem.toLowerCase().includes(search)) return false;
+    if(!isNaN(min) && r.tutar < min) return false;
+    if(!isNaN(max) && r.tutar > max) return false;
+    if(activeCatFilter !== null && r.etiket !== activeCatFilter) return false;
+    return true;
+  });
+
+  rows.sort((a,b)=>{
+    let av=a[sortState.key], bv=b[sortState.key];
+    if(sortState.key==='tutar' || sortState.key==='bonus'){ av=+av||0; bv=+bv||0; }
+    else { av=(av||'').toString().toLowerCase(); bv=(bv||'').toString().toLowerCase(); }
+    if(av<bv) return sortState.dir==='asc'?-1:1;
+    if(av>bv) return sortState.dir==='asc'?1:-1;
+    return 0;
+  });
+  return rows;
+}
+
+/* ============ RENDER: CHIPS ============ */
+function renderChips(){
+  const cats = Array.from(new Set(DATA.map(d=>d.etiket))).sort((a,b)=>{
+    if(a==='') return 1; if(b==='') return -1; return a.localeCompare(b,'tr');
+  });
+  const wrap = document.getElementById('catChips');
+  wrap.innerHTML = '';
+  const allChip = document.createElement('div');
+  allChip.className = 'chip chip-reset' + (activeCatFilter===null?' active':'');
+  allChip.style.background = activeCatFilter===null ? 'var(--accent)':'';
+  allChip.textContent = 'Tümü';
+  allChip.onclick = ()=>{ activeCatFilter=null; renderAll(); };
+  wrap.appendChild(allChip);
+
+  cats.forEach(c=>{
+    const chip = document.createElement('div');
+    const active = activeCatFilter === c;
+    chip.className = 'chip' + (active?' active':'');
+    if(active) chip.style.background = catColor(c);
+    chip.innerHTML = `<span class="dot" style="background:${catColor(c)}"></span>${catLabel(c)}`;
+    chip.onclick = ()=>{ activeCatFilter = active ? null : c; renderAll(); };
+    wrap.appendChild(chip);
+  });
+}
+
+/* ============ RENDER: SELECT dropdown in receipt form ============ */
+function renderCatSelect(){
+  const sel = document.getElementById('nEtiket');
+  const cats = Array.from(new Set(DATA.map(d=>d.etiket).filter(c=>c!=='')))
+    .sort((a,b)=>a.localeCompare(b,'tr'));
+  sel.innerHTML = '<option value="">Kategorisiz</option>' +
+    cats.map(c=>`<option value="${c}">${c}</option>`).join('') +
+    '<option value="__new__">+ Yeni etiket…</option>';
+  sel.onchange = ()=>{
+    document.getElementById('newCatWrap').classList.toggle('show', sel.value === '__new__');
+  };
+}
+
+/* ============ RENDER: STATS ============ */
+function fmt(n){
+  return n.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+function renderStats(rows){
+  const total = rows.reduce((s,r)=>s+(+r.tutar||0),0);
+  const count = rows.length;
+  const avg = count ? total/count : 0;
+  const maxRow = rows.reduce((m,r)=> (+r.tutar||0) > (m?+m.tutar:-1) ? r : m, null);
+  const bonusTotal = rows.reduce((s,r)=>s+(+r.bonus||0),0);
+  const cards = [
+    {label:'Toplam Harcama', value: fmt(total)+' ₺', sub: count+' işlem üzerinden', cls:''},
+    {label:'İşlem Sayısı', value: count, sub:'filtre sonucu', cls:''},
+    {label:'Ortalama İşlem', value: fmt(avg)+' ₺', sub:'işlem başına', cls:'good'},
+    {label:'En Yüksek İşlem', value: maxRow ? fmt(+maxRow.tutar)+' ₺' : '—', sub: maxRow ? maxRow.islem.slice(0,26) : '', cls:'danger'},
+    {label:'Toplam Bonus', value: fmt(bonusTotal)+' ₺', sub:'kazanılan bonus', cls:'gold'},
+  ];
+  document.getElementById('statsRow').innerHTML = cards.map(c=>`
+    <div class="stat ${c.cls}">
+      <div class="label">${c.label}</div>
+      <div class="value">${c.value}</div>
+      <div class="sub">${c.sub}</div>
+    </div>`).join('');
+}
+
+/* ============ RENDER: TABLE ============ */
+function renderTable(rows){
+  const tbody = document.getElementById('tbody');
+  document.getElementById('emptyState').style.display = rows.length ? 'none' : 'block';
+  document.getElementById('rowCountHint').textContent = `(${rows.length} kayıt gösteriliyor)`;
+
+  tbody.innerHTML = rows.map(r=>{
+    const isSel = selected.has(r.id);
+    const dateDisp = r.tarih.split('-').reverse().join('.');
+    return `<tr class="${isSel?'selected':''}" data-id="${r.id}">
+      <td data-label=""><input type="checkbox" class="rowChk" data-id="${r.id}" ${isSel?'checked':''}></td>
+      <td class="mono" data-label="Tarih">${dateDisp}</td>
+      <td class="desc" data-label="" title="${r.islem}">${r.islem}</td>
+      <td data-label="Etiket"><span class="badge" style="background:${catColor(r.etiket)}">${catLabel(r.etiket)}</span></td>
+      <td class="bonus-val" data-label="Bonus" style="text-align:right;">${r.bonus ? fmt(+r.bonus) : '—'}</td>
+      <td class="amount" data-label="Tutar">${fmt(+r.tutar||0)}</td>
+      <td data-label=""><button class="row-del" data-id="${r.id}" title="Sil">✕</button></td>
+    </tr>`;
+  }).join('');
+
+  tbody.querySelectorAll('.rowChk').forEach(chk=>{
+    chk.addEventListener('change', e=>{
+      const id = +e.target.dataset.id;
+      if(e.target.checked) selected.add(id); else selected.delete(id);
+      updateBulkBtn();
+      e.target.closest('tr').classList.toggle('selected', e.target.checked);
+    });
+  });
+  tbody.querySelectorAll('.row-del').forEach(btn=>{
+    btn.addEventListener('click', e=>{
+      const id = +e.target.dataset.id;
+      const rec = DATA.find(d=>d.id===id);
+      if(!rec) return;
+      if(!confirm(`"${rec.islem}" işlemini (${fmt(+rec.tutar)} ₺) silmek istediğinize emin misiniz?`)) return;
+      DATA = DATA.filter(d=>d.id!==id);
+      selected.delete(id);
+      saveData(DATA);
+      toast('İşlem silindi.');
+      renderAll();
+    });
+  });
+
+  const allChecked = rows.length>0 && rows.every(r=>selected.has(r.id));
+  document.getElementById('selectAll').checked = allChecked;
+  updateBulkBtn();
+}
+
+function updateBulkBtn(){
+  const btn = document.getElementById('bulkDeleteBtn');
+  btn.textContent = `Seçilenleri Sil (${selected.size})`;
+  btn.disabled = selected.size === 0;
+}
+
+/* ============ RENDER: CHARTS ============ */
+let catChartInst=null, trendChartInst=null;
+function cssVar(name){ return getComputedStyle(document.body).getPropertyValue(name).trim(); }
+
+function renderCharts(rows){
+  rows = rows || getFiltered();
+  const ink = cssVar('--ink'), muted = cssVar('--muted'), line = cssVar('--line');
+
+  // Category donut
+  const byCat = {};
+  rows.forEach(r=>{ byCat[r.etiket] = (byCat[r.etiket]||0) + (+r.tutar||0); });
+  const catKeys = Object.keys(byCat).sort((a,b)=>byCat[b]-byCat[a]);
+  const catVals = catKeys.map(k=>byCat[k]);
+  const catBgs = catKeys.map(k=>catColor(k));
+
+  if(catChartInst) catChartInst.destroy();
+  catChartInst = new Chart(document.getElementById('catChart'), {
+    type:'doughnut',
+    data:{ labels: catKeys.map(catLabel), datasets:[{ data: catVals, backgroundColor: catBgs, borderWidth:2, borderColor: cssVar('--panel') }]},
+    options:{
+      responsive:true, maintainAspectRatio:false, cutout:'62%',
+      plugins:{ legend:{display:false},
+        tooltip:{ callbacks:{ label: (ctx)=> `${ctx.label}: ${fmt(ctx.parsed)} ₺` } } }
+    }
+  });
+  document.getElementById('catLegend').innerHTML = catKeys.map(k=>
+    `<span><span class="dot" style="background:${catColor(k)}"></span>${catLabel(k)} · ${fmt(byCat[k])} ₺</span>`
+  ).join('');
+
+  // Daily trend
+  const byDate = {};
+  rows.forEach(r=>{ byDate[r.tarih] = (byDate[r.tarih]||0) + (+r.tutar||0); });
+  const dateKeys = Object.keys(byDate).sort();
+  const dateVals = dateKeys.map(k=>byDate[k]);
+  const dateLabels = dateKeys.map(k=>k.split('-').slice(1).reverse().join('.'));
+
+  if(trendChartInst) trendChartInst.destroy();
+  trendChartInst = new Chart(document.getElementById('trendChart'), {
+    type:'bar',
+    data:{ labels:dateLabels, datasets:[{ data:dateVals, backgroundColor: cssVar('--accent'), borderRadius:4, maxBarThickness:22 }]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:(ctx)=>fmt(ctx.parsed.y)+' ₺' } } },
+      scales:{
+        x:{ ticks:{ color: muted, font:{size:10} }, grid:{ display:false } },
+        y:{ ticks:{ color: muted, font:{size:10}, callback:(v)=>v>=1000?(v/1000)+'k':v }, grid:{ color: line } }
+      }
+    }
+  });
+}
+
+/* ============ MASTER RENDER ============ */
+function renderAll(){
+  const rows = getFiltered();
+  renderChips();
+  renderStats(rows);
+  renderTable(rows);
+  renderCharts(rows);
+}
+
+/* ============ EVENTS: FILTERS ============ */
+['fStart','fEnd','fSearch','fMin','fMax'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', renderAll);
+});
+document.getElementById('clearFilters').addEventListener('click', ()=>{
+  document.getElementById('fStart').value='';
+  document.getElementById('fEnd').value='';
+  document.getElementById('fSearch').value='';
+  document.getElementById('fMin').value='';
+  document.getElementById('fMax').value='';
+  activeCatFilter = null;
+  renderAll();
+});
+
+/* ============ EVENTS: SORT ============ */
+document.querySelectorAll('th.sortable').forEach(th=>{
+  th.addEventListener('click', ()=>{
+    const key = th.dataset.sort;
+    if(sortState.key === key){ sortState.dir = sortState.dir==='asc'?'desc':'asc'; }
+    else { sortState = {key, dir:'asc'}; }
+    document.querySelectorAll('th.sortable .arrow').forEach(a=>a.textContent='');
+    th.querySelector('.arrow').textContent = sortState.dir==='asc' ? '▴' : '▾';
+    renderAll();
+  });
+});
+
+/* ============ EVENTS: SELECT ALL / BULK DELETE ============ */
+document.getElementById('selectAll').addEventListener('change', e=>{
+  const rows = getFiltered();
+  if(e.target.checked){ rows.forEach(r=>selected.add(r.id)); }
+  else { rows.forEach(r=>selected.delete(r.id)); }
+  renderTable(rows);
+});
+
+document.getElementById('bulkDeleteBtn').addEventListener('click', ()=>{
+  if(selected.size===0) return;
+  if(!confirm(`${selected.size} işlemi kalıcı olarak silmek istediğinize emin misiniz?`)) return;
+  DATA = DATA.filter(d=>!selected.has(d.id));
+  saveData(DATA);
+  toast(`${selected.size} işlem silindi.`);
+  selected.clear();
+  renderAll();
+});
+
+/* ============ EVENTS: ADD NEW ============ */
+renderCatSelect();
+document.getElementById('nTarih').value = new Date().toISOString().slice(0,10);
+
+document.getElementById('addBtn').addEventListener('click', ()=>{
+  const tarih = document.getElementById('nTarih').value;
+  const islem = document.getElementById('nIslem').value.trim();
+  let etiket = document.getElementById('nEtiket').value;
+  const newCat = document.getElementById('nNewCat').value.trim();
+  const tutar = parseFloat(document.getElementById('nTutar').value);
+  const bonus = parseFloat(document.getElementById('nBonus').value) || 0;
+
+  if(!tarih || !islem || isNaN(tutar)){
+    toast('Tarih, işlem ve tutar alanları zorunludur.');
+    return;
+  }
+  if(etiket === '__new__'){
+    if(!newCat){ toast('Yeni etiket adını yazın.'); return; }
+    etiket = newCat;
+  }
+  const maxId = DATA.reduce((m,d)=>Math.max(m,d.id),0);
+  DATA.unshift({ id:maxId+1, tarih, islem, etiket, bonus, tutar });
+  saveData(DATA);
+  toast('Yeni işlem kaydedildi.');
+
+  document.getElementById('nIslem').value='';
+  document.getElementById('nTutar').value='';
+  document.getElementById('nBonus').value='';
+  document.getElementById('nNewCat').value='';
+  document.getElementById('newCatWrap').classList.remove('show');
+  renderCatSelect();
+  renderAll();
+});
+
+/* ============ EXPORT CSV ============ */
+document.getElementById('exportCsv').addEventListener('click', ()=>{
+  const rows = getFiltered();
+  const header = 'Tarih;Islem;Etiket;Bonus;Tutar(TL)';
+  const lines = rows.map(r=>[
+    r.tarih.split('-').reverse().join('/'),
+    '"'+r.islem.replace(/"/g,'""')+'"',
+    catLabel(r.etiket),
+    (r.bonus||0).toString().replace('.',','),
+    (r.tutar||0).toString().replace('.',',')
+  ].join(';'));
+  const csv = '\uFEFF' + [header, ...lines].join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'donemici_islemler.csv';
+  a.click();
+});
+
+/* ============ INIT ============ */
+renderAll();
+
+/* ============ PWA: SERVICE WORKER KAYDI ============ */
+// Not: Dosyayı doğrudan çift tıklayarak (file://) açarsanız tarayıcılar
+// güvenlik nedeniyle service worker'a izin vermez; bu normaldir ve uygulamayı
+// bozmaz. Tam PWA deneyimi (çevrimdışı çalışma + "Ana ekrana ekle") için
+// dosyaları bir web sunucusundan (GitHub Pages, Netlify, basit bir HTTP
+// sunucusu vb.) açmanız gerekir.
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(err => {
+      console.log('Service worker kaydedilemedi:', err);
+    });
+  });
+}
+</script>
+</body>
+</html>
