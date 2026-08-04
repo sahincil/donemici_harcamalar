@@ -1,9 +1,9 @@
 DÖNEMİÇİ İŞLEMLER — PWA KURULUM NOTU
 =====================================
 
-Bu klasörde 5 dosya var, hepsi BİRLİKTE aynı klasörde kalmalı:
+Bu klasörde 6 dosya var, hepsi BİRLİKTE aynı klasörde kalmalı:
 
-  - donemici_islemler_paneli.html   (asıl uygulama)
+  - index.html                     (asıl uygulama — GitHub Pages bu adı arar)
   - manifest.json                  (uygulama kimliği, ikon, isim)
   - sw.js                          (çevrimdışı çalışma için service worker)
   - icon-192.png / icon-512.png / icon-512-maskable.png  (uygulama ikonları)
@@ -21,30 +21,35 @@ ikonu görünmeyebilir ve internet olmadan tekrar açılamaz. Mobil ekran
 düzeni (kart görünümlü tablo, büyük dokunma alanları vb.) yine de aktiftir.
 
 TAM PWA DENEYİMİ İÇİN (ana ekrana ekle + çevrimdışı çalışma)
-Dosyaları küçük bir web sunucusundan yayınlamanız gerekir. En kolay
-seçenekler:
 
-1) Netlify Drop (hesap gerektirmez):
-   https://app.netlify.com/drop adresine gidin, bu 5 dosyanın olduğu
+SEÇENEK A — GitHub Pages:
+1) github.com'da yeni bir Public depo oluşturun (örn. donemici-islemler).
+2) "Add file > Upload files" ile bu 6 dosyayı sürükleyip bırakın, commit edin.
+3) Depoda Settings > Pages'e gidin, Branch olarak "main" ve "/ (root)"
+   seçip Save'e tıklayın.
+4) Bir-iki dakika sonra adresiniz oluşur:
+   https://kullaniciadiniz.github.io/donemici-islemler/
+   (index.html adı sayesinde dosya adını adrese eklemenize gerek yok)
+5) Telefonda bu adresi açın, tarayıcı menüsünden "Ana Ekrana Ekle"
+   (Android) veya paylaş menüsünden "Ana Ekrana Ekle" (iOS Safari)
+   seçeneğini kullanın.
+
+SEÇENEK B — Netlify Drop (hesap gerektirmez):
+   https://app.netlify.com/drop adresine gidin, bu 6 dosyanın olduğu
    klasörü tarayıcıya sürükleyip bırakın. Size bir adres verecek
-   (örn. https://xxxx.netlify.app/donemici_islemler_paneli.html).
-   Telefonunuzda bu adresi açın, tarayıcı menüsünden
-   "Ana Ekrana Ekle" (Android) veya "Ana Ekrana Ekle" (iOS Safari
-   paylaş menüsü) seçeneğini kullanın.
+   (örn. https://xxxx.netlify.app/ — index.html sayesinde dosya adı
+   eklemeden direkt açılır). Telefonunuzda bu adresi açıp yukarıdaki gibi
+   "Ana Ekrana Ekle" yapın.
 
-2) GitHub Pages: Bu 5 dosyayı bir GitHub deposuna yükleyip
-   Pages özelliğini açarsanız aynı şekilde çalışır.
-
-3) Kendi bilgisayarınızda basit sunucu (aynı Wi-Fi'daki telefon için):
+SEÇENEK C — Kendi bilgisayarınızda basit sunucu (aynı Wi-Fi'daki telefon için):
    Bilgisayarda bu klasörde bir terminal açıp:
        python -m http.server 8080
    yazın, sonra telefonunuzdan bilgisayarın yerel IP adresiyle
-   (örn. http://192.168.1.20:8080/donemici_islemler_paneli.html)
-   bağlanın.
+   (örn. http://192.168.1.20:8080/) bağlanın.
 
 VERİLERİNİZ NEREDE SAKLANIYOR?
 Panel verileri tarayıcının localStorage'ında saklar. Yani veriler
-hangi tarayıcı/adresten açtıysanız ona bağlıdır — Netlify'a taşırsanız
-veya farklı bir tarayıcıda açarsanız eski file:// sürümündeki kayıtları
-göremezsiniz. Önemliyse önce "CSV Olarak Dışa Aktar" ile mevcut
-kayıtları yedekleyin.
+hangi tarayıcı/adresten açtıysanız ona bağlıdır — GitHub Pages'e
+taşırsanız veya farklı bir tarayıcıda açarsanız eski file:// sürümündeki
+kayıtları göremezsiniz. Önemliyse önce "CSV Olarak Dışa Aktar" ile
+mevcut kayıtları yedekleyin.

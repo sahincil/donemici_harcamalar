@@ -2,7 +2,7 @@
   "name": "Dönemiçi İşlemler — Hesap Defteri",
   "short_name": "Dönemiçi İşl.",
   "description": "Kişisel hesap defteri ve harcama gösterge paneli",
-  "start_url": "./donemici_islemler_paneli.html",
+  "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#faf9fc",

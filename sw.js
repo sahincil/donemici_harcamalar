@@ -3,7 +3,7 @@
 
 const CACHE_NAME = 'donemici-islemler-v1';
 const CORE_ASSETS = [
-  './donemici_islemler_paneli.html',
+  './index.html',
   './manifest.json',
   './icon-192.png',
   './icon-512.png',
