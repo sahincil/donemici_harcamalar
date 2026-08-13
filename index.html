@@ -36,7 +36,7 @@
   --shadow: 0 8px 28px -8px rgba(0,0,0,.55), 0 2px 8px -2px rgba(0,0,0,.35);
 }
 *{box-sizing:border-box;}
-html,body{margin:0;padding:0;}
+html,body{margin:0;padding:0; overflow-x:hidden; max-width:100%;}
 body{
   background:var(--bg); color:var(--ink);
   font-family:'Inter',sans-serif;
@@ -92,6 +92,7 @@ a{color:var(--accent);}
 
 /* ---------- Layout: table + side panel ---------- */
 .grid{display:grid; grid-template-columns:1.75fr 1fr; gap:20px; align-items:start;}
+.grid > *{min-width:0;}
 @media (max-width:1080px){.grid{grid-template-columns:1fr;} .stats{grid-template-columns:repeat(2,1fr);}}
 
 .panel{
@@ -150,7 +151,7 @@ input:focus, select:focus{border-color:var(--accent);}
 .btn-ghost{background:transparent;}
 
 /* ---------- Table ---------- */
-.table-scroll{overflow-x:auto; border:1px solid var(--line); border-radius:12px;}
+.table-scroll{overflow-x:auto; border:1px solid var(--line); border-radius:12px; min-width:0; max-width:100%;}
 table{width:100%; border-collapse:collapse; font-size:13.5px;}
 thead th{
   text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.5px;
@@ -235,6 +236,25 @@ input[type="checkbox"]{width:15px;height:15px; accent-color:var(--accent); curso
 [data-theme="dark"] .toast{background:var(--accent); color:#fff;}
 
 footer{text-align:center; color:var(--muted); font-size:11.5px; padding:30px 0 6px;}
+
+/* ---------- Dar telefon ekranları ---------- */
+@media (max-width:560px){
+  .topbar{padding:16px 18px;}
+  .brand p{display:none;}
+  .wrap{padding:18px 16px;}
+  .stats{grid-template-columns:1fr; gap:10px;}
+  .panel{padding:16px;}
+  .filters{gap:10px;}
+  .f-group{width:100%;}
+  .search-box{min-width:0; width:100%;}
+  input, select{width:100%;}
+  .filters-actions{flex-direction:column; align-items:stretch;}
+  .filters-actions > div{flex-direction:column; align-items:stretch;}
+  .filters-actions .btn{width:100%; text-align:center;}
+  .receipt-form .row2{grid-template-columns:1fr;}
+  .desc{max-width:38vw;}
+  .active-filters-bar{gap:6px;}
+}
 </style>
 </head>
 <body data-theme="light">
@@ -287,7 +307,7 @@ footer{text-align:center; color:var(--muted); font-size:11.5px; padding:30px 0 6
         <div class="chips" id="catChips"></div>
         <div class="filters-actions" style="margin-top:14px;">
           <button class="btn btn-ghost" id="clearFilters">Filtreleri Temizle</button>
-          <div style="display:flex; gap:8px;">
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
             <input type="file" id="importExcelInput" accept=".xlsx,.xls,.csv" style="display:none;">
             <button class="btn" id="importExcelBtn">Excel'den İçe Aktar</button>
             <button class="btn" id="exportCsv">CSV Olarak Dışa Aktar</button>
@@ -301,7 +321,7 @@ footer{text-align:center; color:var(--muted); font-size:11.5px; padding:30px 0 6
             <h2 style="display:inline">İşlem Listesi</h2>
             <span class="hint" id="rowCountHint" style="margin-left:8px;"></span>
           </div>
-          <div style="display:flex; gap:8px;">
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
             <button class="btn" id="fixCaseBtn">Yazımı Düzelt (Baş Harf Büyük)</button>
             <button class="btn btn-danger" id="bulkDeleteBtn" disabled>Seçilenleri Sil (0)</button>
           </div>
