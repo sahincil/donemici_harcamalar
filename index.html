@@ -2,22 +2,18 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dönemiçi İşlemler — Hesap Defteri</title>
-
-<!-- PWA: manifest ve simgeler -->
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#6d4fc4">
-<link rel="icon" href="icon-192.png" type="image/png">
-<link rel="apple-touch-icon" href="icon-192.png">
-<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#faf9fc" id="themeColorMeta">
+<link rel="apple-touch-icon" href="./icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Dönemiçi İşl.">
-
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 :root{
   --bg:#faf9fc; --panel:#ffffff; --panel-2:#f3f0fa;
@@ -124,6 +120,21 @@ input:focus, select:focus{border-color:var(--accent);}
 .chip .dot{width:7px;height:7px;border-radius:50%;}
 .chip.active{border-color:transparent; color:#fff; font-weight:500;}
 .chip-reset{border-style:dashed;}
+.active-filters-bar{
+  display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+  margin-bottom:14px; font-size:12.5px; color:var(--muted);
+}
+.active-filters-bar .afb-label{font-weight:500; color:var(--ink);}
+.afb-chip{
+  display:inline-flex; align-items:center; gap:6px; font-size:12px; padding:4px 6px 4px 10px;
+  border-radius:100px; color:#fff; font-weight:500; white-space:nowrap;
+}
+.afb-chip .x{cursor:pointer; opacity:.75; padding:2px 4px; border-radius:50%;}
+.afb-chip .x:hover{opacity:1; background:rgba(255,255,255,.25);}
+.afb-clear{
+  border:none; background:transparent; color:var(--accent); cursor:pointer;
+  font-size:12px; text-decoration:underline; padding:0;
+}
 
 .filters-actions{display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;}
 .btn{
@@ -224,63 +235,6 @@ input[type="checkbox"]{width:15px;height:15px; accent-color:var(--accent); curso
 [data-theme="dark"] .toast{background:var(--accent); color:#fff;}
 
 footer{text-align:center; color:var(--muted); font-size:11.5px; padding:30px 0 6px;}
-
-/* ---------- Mobil uyumluluk (PWA) ---------- */
-@supports (padding: max(0px)){
-  .topbar{ padding-top:max(14px, env(safe-area-inset-top)); }
-  body{ padding-bottom:max(60px, env(safe-area-inset-bottom)); }
-}
-
-@media (max-width:640px){
-  .topbar{ padding:14px 16px; }
-  .brand h1{ font-size:16px; }
-  .brand p{ display:none; }
-  .brand .mark{ width:34px; height:34px; font-size:16px; }
-  .theme-toggle{ padding:7px 10px; font-size:12px; }
-  .theme-toggle span{ display:none; }
-
-  .wrap{ padding:16px 12px; }
-  .stats{ grid-template-columns:repeat(2,1fr); gap:10px; }
-  .stat{ padding:14px 14px 12px; }
-  .stat .value{ font-size:18px; }
-
-  .panel{ padding:14px; }
-  .filters{ flex-direction:column; }
-  .f-group{ width:100%; }
-  input, select{ width:100%; font-size:14px; padding:10px 11px; } /* iOS zoom önleme + kolay dokunma */
-  .search-box{ min-width:0; }
-  .filters-actions{ flex-direction:column; align-items:stretch; }
-  .filters-actions .btn{ width:100%; text-align:center; }
-
-  .row2{ grid-template-columns:1fr !important; }
-
-  /* Tablo -> kart görünümü */
-  .table-scroll{ overflow-x:visible; border:none; }
-  table, thead, tbody, tr, td{ display:block; width:100%; }
-  thead{ display:none; }
-  tbody tr{
-    border:1px solid var(--line); border-radius:12px; margin-bottom:10px;
-    padding:10px 12px; position:relative; background:var(--panel);
-  }
-  tbody tr.selected{ border-color:var(--accent); }
-  tbody td{ border-top:none; padding:4px 0; white-space:normal; }
-  tbody td.desc{ max-width:100%; white-space:normal; font-weight:600; padding-right:34px; }
-  tbody td.amount{ text-align:left; font-size:16px; }
-  tbody td.bonus-val{ text-align:left; }
-  tbody td:first-child{ position:absolute; top:10px; right:8px; padding:0; }
-  tbody td:last-child{ position:absolute; top:6px; right:34px; padding:0; }
-  tbody td.mono{ color:var(--muted); font-size:12px; }
-  tbody td[data-label]:not([data-label=""])::before{
-    content:attr(data-label); display:inline-block; min-width:56px;
-    font-size:10.5px; text-transform:uppercase; letter-spacing:.4px; color:var(--muted); margin-right:8px;
-  }
-  tbody td.amount::before, tbody td.bonus-val::before{ min-width:0; margin-right:8px; }
-
-  .chart-box{ height:200px; }
-  .legend-mini{ font-size:10.5px; }
-
-  .receipt{ padding:18px 16px 14px; }
-}
 </style>
 </head>
 <body data-theme="light">
@@ -297,6 +251,8 @@ footer{text-align:center; color:var(--muted); font-size:11.5px; padding:30px 0 6
 </div>
 
 <div class="wrap">
+
+  <div class="active-filters-bar" id="activeFiltersBar" style="display:none;"></div>
 
   <div class="stats" id="statsRow"></div>
 
@@ -317,7 +273,7 @@ footer{text-align:center; color:var(--muted); font-size:11.5px; padding:30px 0 6
           </div>
           <div class="f-group" style="flex:1;">
             <label>İşlem ara</label>
-            <input type="text" id="fSearch" class="search-box" placeholder="Örn. Market, Netflix, A101…">
+            <input type="text" id="fSearch" class="search-box" placeholder="Örn. Market, Netflix, A101… (virgülle birden çok terim)">
           </div>
           <div class="f-group">
             <label>Min. tutar</label>
@@ -331,7 +287,11 @@ footer{text-align:center; color:var(--muted); font-size:11.5px; padding:30px 0 6
         <div class="chips" id="catChips"></div>
         <div class="filters-actions" style="margin-top:14px;">
           <button class="btn btn-ghost" id="clearFilters">Filtreleri Temizle</button>
-          <button class="btn" id="exportCsv">CSV Olarak Dışa Aktar</button>
+          <div style="display:flex; gap:8px;">
+            <input type="file" id="importExcelInput" accept=".xlsx,.xls,.csv" style="display:none;">
+            <button class="btn" id="importExcelBtn">Excel'den İçe Aktar</button>
+            <button class="btn" id="exportCsv">CSV Olarak Dışa Aktar</button>
+          </div>
         </div>
       </div>
 
@@ -342,6 +302,7 @@ footer{text-align:center; color:var(--muted); font-size:11.5px; padding:30px 0 6
             <span class="hint" id="rowCountHint" style="margin-left:8px;"></span>
           </div>
           <div style="display:flex; gap:8px;">
+            <button class="btn" id="fixCaseBtn">Yazımı Düzelt (Baş Harf Büyük)</button>
             <button class="btn btn-danger" id="bulkDeleteBtn" disabled>Seçilenleri Sil (0)</button>
           </div>
         </div>
@@ -464,7 +425,7 @@ function saveData(d){ localStorage.setItem(STORE_KEY, JSON.stringify(d)); }
 let DATA = loadData();
 let selected = new Set();
 let sortState = {key:"tarih", dir:"desc"};
-let activeCatFilter = null;
+let activeCatFilters = new Set(); // boş = tümü
 
 /* ============ THEME ============ */
 function applyTheme(t){
@@ -472,6 +433,8 @@ function applyTheme(t){
   const btn = document.getElementById('themeToggle');
   btn.innerHTML = t === 'dark' ? '☀️ <span>Açık Tema</span>' : '🌙 <span>Koyu Tema</span>';
   localStorage.setItem(THEME_KEY, t);
+  const meta = document.getElementById('themeColorMeta');
+  if(meta) meta.setAttribute('content', t === 'dark' ? '#15121e' : '#faf9fc');
 }
 applyTheme(localStorage.getItem(THEME_KEY) || 'light');
 document.getElementById('themeToggle').addEventListener('click', ()=>{
@@ -490,27 +453,39 @@ function toast(msg){
 }
 
 /* ============ FILTER LOGIC ============ */
+// Arama kutusuna virgülle ayrılmış birden fazla terim yazılabilir (örn. "Market, Netflix");
+// bir işlem bu terimlerden HERHANGİ birini içeriyorsa listelenir (VEYA mantığı).
+function getSearchTerms(){
+  const raw = document.getElementById('fSearch').value;
+  return raw.split(',').map(s=>s.trim().toLocaleLowerCase('tr-TR')).filter(s=>s.length>0);
+}
+
 function getFiltered(){
   const start = document.getElementById('fStart').value;
   const end = document.getElementById('fEnd').value;
-  const search = document.getElementById('fSearch').value.trim().toLowerCase();
   const min = parseFloat(document.getElementById('fMin').value);
   const max = parseFloat(document.getElementById('fMax').value);
+
+  const searchTerms = getSearchTerms();
 
   let rows = DATA.filter(r=>{
     if(start && r.tarih < start) return false;
     if(end && r.tarih > end) return false;
-    if(search && !r.islem.toLowerCase().includes(search)) return false;
+    if(searchTerms.length){
+      const hay = r.islem.toLocaleLowerCase('tr-TR');
+      const anyMatch = searchTerms.some(term => hay.includes(term));
+      if(!anyMatch) return false;
+    }
     if(!isNaN(min) && r.tutar < min) return false;
     if(!isNaN(max) && r.tutar > max) return false;
-    if(activeCatFilter !== null && r.etiket !== activeCatFilter) return false;
+    if(activeCatFilters.size > 0 && !activeCatFilters.has(r.etiket)) return false;
     return true;
   });
 
   rows.sort((a,b)=>{
     let av=a[sortState.key], bv=b[sortState.key];
     if(sortState.key==='tutar' || sortState.key==='bonus'){ av=+av||0; bv=+bv||0; }
-    else { av=(av||'').toString().toLowerCase(); bv=(bv||'').toString().toLowerCase(); }
+    else { av=(av||'').toString().toLocaleLowerCase('tr-TR'); bv=(bv||'').toString().toLocaleLowerCase('tr-TR'); }
     if(av<bv) return sortState.dir==='asc'?-1:1;
     if(av>bv) return sortState.dir==='asc'?1:-1;
     return 0;
@@ -518,7 +493,7 @@ function getFiltered(){
   return rows;
 }
 
-/* ============ RENDER: CHIPS ============ */
+/* ============ RENDER: CHIPS (çoklu seçim) ============ */
 function renderChips(){
   const cats = Array.from(new Set(DATA.map(d=>d.etiket))).sort((a,b)=>{
     if(a==='') return 1; if(b==='') return -1; return a.localeCompare(b,'tr');
@@ -526,20 +501,69 @@ function renderChips(){
   const wrap = document.getElementById('catChips');
   wrap.innerHTML = '';
   const allChip = document.createElement('div');
-  allChip.className = 'chip chip-reset' + (activeCatFilter===null?' active':'');
-  allChip.style.background = activeCatFilter===null ? 'var(--accent)':'';
+  const noneActive = activeCatFilters.size === 0;
+  allChip.className = 'chip chip-reset' + (noneActive?' active':'');
+  allChip.style.background = noneActive ? 'var(--accent)':'';
   allChip.textContent = 'Tümü';
-  allChip.onclick = ()=>{ activeCatFilter=null; renderAll(); };
+  allChip.onclick = ()=>{ activeCatFilters.clear(); renderAll(); };
   wrap.appendChild(allChip);
 
   cats.forEach(c=>{
     const chip = document.createElement('div');
-    const active = activeCatFilter === c;
+    const active = activeCatFilters.has(c);
     chip.className = 'chip' + (active?' active':'');
     if(active) chip.style.background = catColor(c);
     chip.innerHTML = `<span class="dot" style="background:${catColor(c)}"></span>${catLabel(c)}`;
-    chip.onclick = ()=>{ activeCatFilter = active ? null : c; renderAll(); };
+    chip.onclick = ()=>{
+      if(activeCatFilters.has(c)) activeCatFilters.delete(c);
+      else activeCatFilters.add(c);
+      renderAll();
+    };
     wrap.appendChild(chip);
+  });
+}
+
+/* ============ RENDER: Seçili kategoriler + arama terimleri şeridi (dashboard'ın üstünde) ============ */
+function renderActiveFiltersBar(){
+  const bar = document.getElementById('activeFiltersBar');
+  const searchTerms = getSearchTerms();
+
+  if(activeCatFilters.size === 0 && searchTerms.length === 0){
+    bar.style.display = 'none';
+    bar.innerHTML = '';
+    return;
+  }
+  bar.style.display = 'flex';
+
+  const catChips = Array.from(activeCatFilters).map(c => `
+    <span class="afb-chip" style="background:${catColor(c)}">
+      ${catLabel(c)}
+      <span class="x" data-kind="cat" data-val="${c}" title="Bu kategoriyi kaldır">✕</span>
+    </span>`).join('');
+
+  const searchChips = searchTerms.map(t => `
+    <span class="afb-chip" style="background:var(--muted)">
+      “${t}”
+      <span class="x" data-kind="search" data-val="${t}" title="Bu terimi kaldır">✕</span>
+    </span>`).join('');
+
+  bar.innerHTML = `<span class="afb-label">Gösterilen:</span>${catChips}${searchChips}<button class="afb-clear" id="afbClear">Tümünü temizle</button>`;
+
+  bar.querySelectorAll('.afb-chip .x').forEach(x=>{
+    x.addEventListener('click', ()=>{
+      if(x.dataset.kind === 'cat'){
+        activeCatFilters.delete(x.dataset.val);
+      } else {
+        const remaining = getSearchTerms().filter(t => t !== x.dataset.val);
+        document.getElementById('fSearch').value = remaining.join(', ');
+      }
+      renderAll();
+    });
+  });
+  document.getElementById('afbClear').addEventListener('click', ()=>{
+    activeCatFilters.clear();
+    document.getElementById('fSearch').value = '';
+    renderAll();
   });
 }
 
@@ -591,13 +615,13 @@ function renderTable(rows){
     const isSel = selected.has(r.id);
     const dateDisp = r.tarih.split('-').reverse().join('.');
     return `<tr class="${isSel?'selected':''}" data-id="${r.id}">
-      <td data-label=""><input type="checkbox" class="rowChk" data-id="${r.id}" ${isSel?'checked':''}></td>
-      <td class="mono" data-label="Tarih">${dateDisp}</td>
-      <td class="desc" data-label="" title="${r.islem}">${r.islem}</td>
-      <td data-label="Etiket"><span class="badge" style="background:${catColor(r.etiket)}">${catLabel(r.etiket)}</span></td>
-      <td class="bonus-val" data-label="Bonus" style="text-align:right;">${r.bonus ? fmt(+r.bonus) : '—'}</td>
-      <td class="amount" data-label="Tutar">${fmt(+r.tutar||0)}</td>
-      <td data-label=""><button class="row-del" data-id="${r.id}" title="Sil">✕</button></td>
+      <td><input type="checkbox" class="rowChk" data-id="${r.id}" ${isSel?'checked':''}></td>
+      <td class="mono">${dateDisp}</td>
+      <td class="desc" title="${r.islem}">${r.islem}</td>
+      <td><span class="badge" style="background:${catColor(r.etiket)}">${catLabel(r.etiket)}</span></td>
+      <td class="bonus-val" style="text-align:right;">${r.bonus ? fmt(+r.bonus) : '—'}</td>
+      <td class="amount">${fmt(+r.tutar||0)}</td>
+      <td><button class="row-del" data-id="${r.id}" title="Sil">✕</button></td>
     </tr>`;
   }).join('');
 
@@ -689,6 +713,7 @@ function renderCharts(rows){
 function renderAll(){
   const rows = getFiltered();
   renderChips();
+  renderActiveFiltersBar();
   renderStats(rows);
   renderTable(rows);
   renderCharts(rows);
@@ -704,7 +729,7 @@ document.getElementById('clearFilters').addEventListener('click', ()=>{
   document.getElementById('fSearch').value='';
   document.getElementById('fMin').value='';
   document.getElementById('fMax').value='';
-  activeCatFilter = null;
+  activeCatFilters.clear();
   renderAll();
 });
 
@@ -718,6 +743,28 @@ document.querySelectorAll('th.sortable').forEach(th=>{
     th.querySelector('.arrow').textContent = sortState.dir==='asc' ? '▴' : '▾';
     renderAll();
   });
+});
+
+/* ============ İŞLEM ADLARINI DÜZELT (Baş harf büyük, diğerleri küçük) ============ */
+// Türkçe'de İ/I/ı/i dönüşümleri standart JS toLowerCase/toUpperCase ile yanlış sonuç
+// verdiği için (İ -> "i̇" gibi), Türkçe yerel ayarını (tr-TR) açıkça belirtiyoruz.
+function toSentenceCase(str){
+  if(!str) return str;
+  const lower = str.toLocaleLowerCase('tr-TR');
+  return lower.charAt(0).toLocaleUpperCase('tr-TR') + lower.slice(1);
+}
+
+document.getElementById('fixCaseBtn').addEventListener('click', ()=>{
+  const toFix = DATA.filter(r => toSentenceCase(r.islem) !== r.islem);
+  if(toFix.length === 0){
+    toast('Tüm işlem adları zaten düzgün görünüyor.');
+    return;
+  }
+  if(!confirm(`${toFix.length} işlem adının yazımı "Baş harf büyük, diğerleri küçük" şeklinde düzeltilecek. Devam edilsin mi?`)) return;
+  DATA.forEach(r=>{ r.islem = toSentenceCase(r.islem); });
+  saveData(DATA);
+  toast(`${toFix.length} işlem adı düzeltildi.`);
+  renderAll();
 });
 
 /* ============ EVENTS: SELECT ALL / BULK DELETE ============ */
@@ -772,6 +819,118 @@ document.getElementById('addBtn').addEventListener('click', ()=>{
   renderAll();
 });
 
+/* ============ IMPORT FROM EXCEL/CSV ============ */
+// Farklı dosyalarda başlık isimleri değişebiliyor (İşlem/Aciklama, Tutar/Tutar(TL) vb.)
+// bu yüzden başlıkları küçük harfe çevirip, Türkçe karakterleri sadeleştirip eşleştiriyoruz.
+function normalizeHeader(h){
+  return (h||'').toString().trim().toLocaleLowerCase('tr-TR')
+    .replace(/ı/g,'i').replace(/ş/g,'s').replace(/ğ/g,'g')
+    .replace(/ü/g,'u').replace(/ö/g,'o').replace(/ç/g,'c')
+    .replace(/[^a-z0-9]/g,'');
+}
+const HEADER_MAP = {
+  tarih:'tarih', date:'tarih',
+  islem:'islem', aciklama:'islem', description:'islem', islemaciklama:'islem',
+  etiket:'etiket', kategori:'etiket', category:'etiket', tag:'etiket',
+  bonus:'bonus',
+  tutar:'tutar', tutartl:'tutar', amount:'tutar', tl:'tutar'
+};
+
+function parseAmountValue(v){
+  if(typeof v === 'number') return v;
+  if(v == null) return NaN;
+  let s = v.toString().trim().replace(/[₺\s]/g,'');
+  if(s === '') return NaN;
+  if(s.includes(',') && s.includes('.')){
+    // 1.234,56 -> Türkçe biçim: nokta binlik, virgül ondalık
+    s = s.replace(/\./g,'').replace(',', '.');
+  } else if(s.includes(',')){
+    s = s.replace(',', '.');
+  }
+  return parseFloat(s);
+}
+
+function parseDateValue(v){
+  if(v instanceof Date && !isNaN(v)) return v.toISOString().slice(0,10);
+  if(typeof v === 'string'){
+    const s = v.trim();
+    // YYYY-MM-DD zaten doğru formatta
+    if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+    // DD.MM.YYYY veya DD/MM/YYYY
+    const m = s.match(/^(\d{1,2})[.\/](\d{1,2})[.\/](\d{4})$/);
+    if(m) return `${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;
+  }
+  return null;
+}
+
+document.getElementById('importExcelBtn').addEventListener('click', ()=>{
+  document.getElementById('importExcelInput').click();
+});
+
+document.getElementById('importExcelInput').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (evt)=>{
+    try{
+      const wb = XLSX.read(evt.target.result, {type:'array', cellDates:true});
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      const rawRows = XLSX.utils.sheet_to_json(sheet, {defval:''});
+
+      let added = 0, skipped = 0;
+      let maxId = DATA.reduce((m,d)=>Math.max(m,d.id),0);
+      const newRecords = [];
+
+      rawRows.forEach(raw=>{
+        const mapped = {};
+        Object.keys(raw).forEach(key=>{
+          const norm = normalizeHeader(key);
+          const field = HEADER_MAP[norm];
+          if(field) mapped[field] = raw[key];
+        });
+
+        const tarih = parseDateValue(mapped.tarih);
+        const islem = (mapped.islem||'').toString().trim();
+        const tutar = parseAmountValue(mapped.tutar);
+        const bonus = mapped.bonus !== undefined ? parseAmountValue(mapped.bonus) : 0;
+        const etiket = (mapped.etiket||'').toString().trim();
+
+        if(!tarih || !islem || isNaN(tutar)){
+          skipped++;
+          return;
+        }
+        maxId++;
+        newRecords.push({
+          id: maxId, tarih, islem, etiket,
+          bonus: isNaN(bonus) ? 0 : bonus,
+          tutar
+        });
+        added++;
+      });
+
+      if(added > 0){
+        DATA = [...newRecords, ...DATA];
+        saveData(DATA);
+        renderCatSelect();
+        renderAll();
+      }
+
+      if(added > 0 && skipped === 0){
+        toast(`${added} işlem içe aktarıldı.`);
+      } else if(added > 0 && skipped > 0){
+        toast(`${added} işlem içe aktarıldı, ${skipped} satır eksik/hatalı veri nedeniyle atlandı.`);
+      } else {
+        toast('İçe aktarılacak geçerli işlem bulunamadı. Sütun başlıklarını kontrol edin (Tarih, İşlem, Etiket, Bonus, Tutar).');
+      }
+    }catch(err){
+      toast('Dosya okunamadı: ' + err.message);
+    }finally{
+      e.target.value = '';
+    }
+  };
+  reader.readAsArrayBuffer(file);
+});
+
 /* ============ EXPORT CSV ============ */
 document.getElementById('exportCsv').addEventListener('click', ()=>{
   const rows = getFiltered();
@@ -793,17 +952,14 @@ document.getElementById('exportCsv').addEventListener('click', ()=>{
 
 /* ============ INIT ============ */
 renderAll();
+</script>
 
-/* ============ PWA: SERVICE WORKER KAYDI ============ */
-// Not: Dosyayı doğrudan çift tıklayarak (file://) açarsanız tarayıcılar
-// güvenlik nedeniyle service worker'a izin vermez; bu normaldir ve uygulamayı
-// bozmaz. Tam PWA deneyimi (çevrimdışı çalışma + "Ana ekrana ekle") için
-// dosyaları bir web sunucusundan (GitHub Pages, Netlify, basit bir HTTP
-// sunucusu vb.) açmanız gerekir.
-if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+<script>
+// PWA: mobilde "ana ekrana ekle" ve çevrimdışı çalışma için service worker'ı kaydet.
+if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').catch(err => {
-      console.log('Service worker kaydedilemedi:', err);
+    navigator.serviceWorker.register('./sw.js').catch(err => {
+      console.warn('Service worker kaydı başarısız:', err);
     });
   });
 }

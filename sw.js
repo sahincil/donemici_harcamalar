@@ -1,7 +1,7 @@
 // Dönemiçi İşlemler — Service Worker
 // Uygulamayı çevrimdışı (internet olmadan) da açılabilir hale getirir.
 
-const CACHE_NAME = 'donemici-islemler-v1';
+const CACHE_NAME = 'donemici-islemler-v2';
 const CORE_ASSETS = [
   './index.html',
   './manifest.json',
